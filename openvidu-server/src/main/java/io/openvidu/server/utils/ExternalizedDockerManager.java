@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +39,7 @@ final class ExternalizedDockerManager implements DockerManager {
     private DockerManagerRestAPI service;
 
     ExternalizedDockerManager(boolean init, String openViduRecordingDockerHelperUrl) {
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(openViduRecordingDockerHelperUrl).build();
+        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(JacksonConverterFactory.create()).baseUrl(openViduRecordingDockerHelperUrl).build();
         service = retrofit.create(DockerManagerRestAPI.class);
     }
 
