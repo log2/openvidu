@@ -73,6 +73,7 @@ import io.openvidu.server.kurento.kms.KmsManager;
 import io.openvidu.server.recording.Recording;
 import io.openvidu.server.recording.RecordingDownloader;
 import io.openvidu.server.recording.RecordingUploader;
+import io.openvidu.server.recording.service.RecordingService.PropertiesRecordingId;
 
 public class RecordingManager {
 
@@ -160,7 +161,7 @@ public class RecordingManager {
 
 		RecordingManager.IMAGE_TAG = openviduConfig.getOpenViduRecordingVersion();
 
-		this.dockerManager = new LocalDockerManager();
+		this.dockerManager = DockerManagerFactory.createAndInitialize(openviduConfig);
 		this.composedRecordingService = new ComposedRecordingService(this, recordingDownloader, recordingUploader,
 				openviduConfig, cdr, quarantineKiller);
 		this.composedQuickStartRecordingService = new ComposedQuickStartRecordingService(this, recordingDownloader,
@@ -211,9 +212,7 @@ public class RecordingManager {
 
 	public void checkRecordingRequirements(String openviduRecordingPath, String openviduRecordingCustomLayout)
 			throws OpenViduException {
-		DockerManager dockerManager = null;
-		try {
-			dockerManager = new LocalDockerManager();
+		try (DockerManager dockerManager = DockerManagerFactory.createAndInitialize(openviduConfig)) {
 			dockerManager.checkDockerEnabled();
 		} catch (OpenViduException e) {
 			String message = e.getMessage();
@@ -232,8 +231,6 @@ public class RecordingManager {
 			}
 			log.error(message);
 			throw e;
-		} finally {
-			dockerManager.close();
 		}
 		this.checkRecordingPaths(openviduRecordingPath, openviduRecordingCustomLayout);
 	}

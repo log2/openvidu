@@ -59,13 +59,29 @@ public class LocalDockerManager implements DockerManager {
 
 	private DockerClient dockerClient;
 
-	public LocalDockerManager() {
+	LocalDockerManager(boolean init) {
+		if (init) {
+			this.init();
+		}
+	}
+
+	@Override
+	public void init() {
 		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 		this.dockerClient = DockerClientBuilder.getInstance(config).build();
 	}
 
 	@Override
-	public void downloadDockerImage(String image, int secondsOfWait) throws Exception {
+	public void downloadDockerImage(String image, int secondsOfWait)  {
+		try {
+			downloadDockerImageUnsafe(image, secondsOfWait);
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Could not ensure availability of image " + image + " (timeout: " + secondsOfWait + ")", e);
+		}
+	}
+
+	private void downloadDockerImageUnsafe(String image, int secondsOfWait) throws InterruptedException {
 		try {
 			// Pull image
 			this.dockerClient.pullImageCmd(image).exec(new PullImageResultCallback()).awaitCompletion(secondsOfWait,
@@ -179,7 +195,7 @@ public class LocalDockerManager implements DockerManager {
 	}
 
 	@Override
-	public void runCommandInContainer(String containerId, String command) throws InterruptedException {
+	public void runCommandInContainerAsync(String containerId, String command) throws IOException {
 		ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId).withAttachStdout(true)
 				.withAttachStderr(true).withCmd("bash", "-c", command).exec();
 		dockerClient.execStartCmd(execCreateCmdResponse.getId()).exec(new ExecStartResultCallback() {

@@ -1,5 +1,6 @@
 package io.openvidu.server.recording.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,7 +79,7 @@ public class ComposedQuickStartRecordingService extends ComposedRecordingService
 				recordExecCommand += "export " + envs.get(i) + " ";
 			}
 			recordExecCommand += "&& ./composed_quick_start.sh --start-recording > /var/log/ffmpeg.log 2>&1 &";
-			dockerManager.runCommandInContainer(containerId, recordExecCommand);
+			dockerManager.runCommandInContainerAsync(containerId, recordExecCommand);
 		} catch (Exception e) {
 			this.cleanRecordingMaps(recording);
 			throw this.failStartRecording(session, recording,
@@ -117,7 +118,7 @@ public class ComposedQuickStartRecordingService extends ComposedRecordingService
 
 		try {
 			dockerManager.runCommandInContainerSync(containerId, "./composed_quick_start.sh --stop-recording", 10);
-		} catch (InterruptedException e1) {
+		} catch (IOException | InterruptedException e1) {
 			cleanRecordingMaps(recording);
 			log.error("Error stopping recording for session id: {}", session.getSessionId());
 			e1.printStackTrace();

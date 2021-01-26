@@ -4,14 +4,12 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import io.openvidu.client.OpenViduException;
 
-import javax.ws.rs.ProcessingException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public interface DockerManager {
-    void downloadDockerImage(String image, int secondsOfWait) throws Exception;
-
-    boolean dockerImageExistsLocally(String image) throws ProcessingException;
+public interface DockerManager extends SafeAutocloseable {
+    void init();
 
     void checkDockerEnabled() throws OpenViduException;
 
@@ -23,12 +21,13 @@ public interface DockerManager {
 
     void cleanStrandedContainers(String imageName);
 
-    void runCommandInContainer(String containerId, String command) throws InterruptedException;
+    void runCommandInContainerSync(String containerId, String command, int secondsOfWait) throws InterruptedException, IOException;
 
-    void runCommandInContainerSync(String containerId, String command, int secondsOfWait)
-                    throws InterruptedException;
+    void runCommandInContainerAsync(String containerId, String command) throws IOException;
+
+    boolean dockerImageExistsLocally(String image);
+
+    void downloadDockerImage(String image, int secondsOfWait);
 
     void waitForContainerStopped(String containerId, int secondsOfWait) throws Exception;
-
-    void close();
 }
