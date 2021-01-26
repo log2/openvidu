@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.openvidu.server.utils.LocalDockerManager;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
@@ -75,7 +76,7 @@ public class ComposedRecordingService extends RecordingService {
 			RecordingUploader recordingUploader, OpenviduConfig openviduConfig, CallDetailRecord cdr,
 			QuarantineKiller quarantineKiller) {
 		super(recordingManager, recordingDownloader, recordingUploader, openviduConfig, cdr, quarantineKiller);
-		this.dockerManager = new DockerManager();
+		this.dockerManager = new LocalDockerManager();
 	}
 
 	@Override

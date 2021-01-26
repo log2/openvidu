@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import io.openvidu.server.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.kurento.client.ErrorEvent;
 import org.kurento.client.EventListener;
@@ -72,11 +73,6 @@ import io.openvidu.server.kurento.kms.KmsManager;
 import io.openvidu.server.recording.Recording;
 import io.openvidu.server.recording.RecordingDownloader;
 import io.openvidu.server.recording.RecordingUploader;
-import io.openvidu.server.utils.CustomFileManager;
-import io.openvidu.server.utils.DockerManager;
-import io.openvidu.server.utils.JsonUtils;
-import io.openvidu.server.utils.QuarantineKiller;
-import io.openvidu.server.utils.RecordingUtils;
 
 public class RecordingManager {
 
@@ -164,7 +160,7 @@ public class RecordingManager {
 
 		RecordingManager.IMAGE_TAG = openviduConfig.getOpenViduRecordingVersion();
 
-		this.dockerManager = new DockerManager();
+		this.dockerManager = new LocalDockerManager();
 		this.composedRecordingService = new ComposedRecordingService(this, recordingDownloader, recordingUploader,
 				openviduConfig, cdr, quarantineKiller);
 		this.composedQuickStartRecordingService = new ComposedQuickStartRecordingService(this, recordingDownloader,
@@ -217,7 +213,7 @@ public class RecordingManager {
 			throws OpenViduException {
 		DockerManager dockerManager = null;
 		try {
-			dockerManager = new DockerManager();
+			dockerManager = new LocalDockerManager();
 			dockerManager.checkDockerEnabled();
 		} catch (OpenViduException e) {
 			String message = e.getMessage();
