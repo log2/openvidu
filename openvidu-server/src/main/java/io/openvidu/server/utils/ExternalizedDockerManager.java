@@ -80,9 +80,9 @@ final class ExternalizedDockerManager implements DockerManager {
                 ))
                 .binds(translate(binds, dockerBind -> new io.openvidu.server.utils.dockermanager.model.Bind
                                 ().path(dockerBind.getPath())
-                                .accessMode(AccessMode.valueOf(dockerBind.getAccessMode().name()))
-                                .propagationMode(PropagationMode.valueOf(dockerBind.getPropagationMode().name()))
-                                .selContext(SELContext.valueOf(dockerBind.getSecMode().name())) // FIXME mapping issue for different case SELContext modes
+                                .accessMode(AccessMode.fromValue(dockerBind.getAccessMode().name()))
+                                .propagationMode(PropagationMode.fromValue(dockerBind.getPropagationMode().name()))
+                                .selContext(SELContext.fromValue(dockerBind.getSecMode().name())) // FIXME mapping issue for different case SELContext modes
                                 .volume(new io.openvidu.server.utils.dockermanager.model.Volume().path(dockerBind.getVolume().getPath()))
                                 .noCopy(dockerBind.getNoCopy())
                         //
