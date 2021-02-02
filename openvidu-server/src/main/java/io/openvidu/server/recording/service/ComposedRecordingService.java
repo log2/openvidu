@@ -447,7 +447,7 @@ public class ComposedRecordingService extends RecordingService {
 		final String VIDEO_FILE = this.openviduConfig.getOpenViduRecordingPath() + recording.getId() + "/"
 				+ recording.getName() + ".mp4";
 
-		int SECONDS_MAX_WAIT = 15;
+		int SECONDS_MAX_WAIT = 90;
 		int MILLISECONDS_INTERVAL_WAIT = 100;
 		int LIMIT = SECONDS_MAX_WAIT * 1000 / MILLISECONDS_INTERVAL_WAIT;
 
