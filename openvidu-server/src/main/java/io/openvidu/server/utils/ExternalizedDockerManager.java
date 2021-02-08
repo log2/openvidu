@@ -21,6 +21,7 @@ import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import io.openvidu.client.OpenViduException;
 import io.openvidu.server.utils.dockermanager.model.*;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -44,7 +46,18 @@ final class ExternalizedDockerManager implements DockerManager {
     private DockerManagerRestAPI service;
 
     ExternalizedDockerManager(boolean init, String openViduRecordingDockerHelperUrl) {
-        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(JacksonConverterFactory.create()).baseUrl(openViduRecordingDockerHelperUrl).build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .addConverterFactory(JacksonConverterFactory.create())
+                .baseUrl(openViduRecordingDockerHelperUrl)
+                .client(
+                        new OkHttpClient.Builder()
+                                .connectTimeout(10, TimeUnit.SECONDS)
+                                .readTimeout(2, TimeUnit.MINUTES)
+                                .writeTimeout(2, TimeUnit.MINUTES)
+                                .callTimeout(5, TimeUnit.MINUTES)
+                                .build()
+                )
+                .build();
         service = retrofit.create(DockerManagerRestAPI.class);
     }
 
