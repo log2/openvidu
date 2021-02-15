@@ -475,6 +475,8 @@ public class ComposedRecordingService extends RecordingService {
 
 	private boolean fileExistsAndHasBytes(String fileName) {
 		File f = new File(fileName);
+		f.getParentFile().getParentFile().list(); //horrible fix 1
+		f.getParentFile().list(); //horrible fix 2
 		return (f.exists() && f.isFile() && f.length() > 0);
 	}
 
