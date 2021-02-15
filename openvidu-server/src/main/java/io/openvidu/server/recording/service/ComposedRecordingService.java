@@ -445,8 +445,10 @@ public class ComposedRecordingService extends RecordingService {
 
 	protected void waitForVideoFileNotEmpty(Recording recording) throws OpenViduException {
 
+		//		final String VIDEO_FILE = this.openviduConfig.getOpenViduRecordingPath() + recording.getId() + "/"
+		//				+ recording.getName() + ".mp4";
 		final String VIDEO_FILE = this.openviduConfig.getOpenViduRecordingPath() + recording.getId() + "/"
-				+ recording.getName() + ".mp4";
+				+ RecordingManager.RECORDING_ENTITY_FILE + recording.getName();
 
 		int SECONDS_MAX_WAIT = 90;
 		int MILLISECONDS_INTERVAL_WAIT = 100;
