@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.gson.JsonObject;
+
 import io.openvidu.java.client.Recording.Status;
 import io.openvidu.server.core.EndReason;
 import io.openvidu.server.core.MediaOptions;
@@ -178,6 +180,11 @@ public class CallDetailRecord {
 	public void recordRecordingStatusChanged(Recording recording, EndReason finalReason, long timestamp,
 			Status status) {
 		this.log(new CDREventRecordingStatus(recording, recording.getCreatedAt(), finalReason, timestamp, status));
+	}
+	
+	public void recordSendMessage(Participant participant, JsonObject message, Integer transactionId) {
+		CDREventSendMessage eventMessageSent = new CDREventSendMessage(participant, message, System.currentTimeMillis());
+		this.log(eventMessageSent);
 	}
 
 	public void recordFilterEventDispatched(String sessionId, String uniqueSessionId, String connectionId,
