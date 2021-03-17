@@ -430,6 +430,7 @@ public class SessionEventsHandler {
 		}
 
 		if (isRpcCall) {
+			CDR.recordSendMessage(participant, message, transactionId);
 			rpcNotificationService.sendResponse(participant.getParticipantPrivateId(), transactionId, new JsonObject());
 		}
 
