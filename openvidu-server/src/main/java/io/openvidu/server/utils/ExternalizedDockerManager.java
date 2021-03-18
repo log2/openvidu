@@ -49,7 +49,7 @@ final class ExternalizedDockerManager implements DockerManager {
     }
     @Override
     public void checkDockerEnabled() throws OpenViduException {
-        execute(() -> service.checkEnabled());
+        executeAndCheck("checkEnabled", () -> service.checkEnabled());
     }
 
     @Override
@@ -59,7 +59,7 @@ final class ExternalizedDockerManager implements DockerManager {
 
     @Override
     public void downloadDockerImage(String image, int secondsOfWait) {
-        execute(() -> service.ensureImageAvailable(new EnsureImageAvailableRequest().image(image).secondsOfWait(secondsOfWait)));
+        executeAndCheck("ensureImageAvailable", () -> service.ensureImageAvailable(new EnsureImageAvailableRequest().image(image).secondsOfWait(secondsOfWait)));
     }
 
     @Override
@@ -84,32 +84,40 @@ final class ExternalizedDockerManager implements DockerManager {
         }
     }
 
+    private void executeAndCheck(String name, Supplier<Call<BasicResponse>> callSupplier) {
+        BasicResponse basicResponse = execute(callSupplier).body();
+        if (!basicResponse.getSuccess()) {
+            throw new OpenViduException(OpenViduException.Code.GENERIC_ERROR_CODE, "Failed call " + name + ", due to: \"" + basicResponse.getMessage() + "");
+        }
+    }
+
+
     @Override
-    public void removeContainer( String mediaNodeId, String containerId, boolean force) {
-        if (force) execute(() ->
+    public void removeContainer(String mediaNodeId, String containerId, boolean force) {
+        if (force) executeAndCheck("removeContainerForced", () ->
                 service.removeContainerForced(mediaNodeId, containerId));
-        else execute(() -> service.removeContainer(mediaNodeId, containerId));
+        else executeAndCheck("removeContainer", () -> service.removeContainer(mediaNodeId, containerId));
     }
 
     @Override
     public void runCommandInContainerSync(String mediaNodeId, String containerId, String command, int secondsOfWait)
             throws IOException {
-        execute(() -> service.runCommandInContainerSync(mediaNodeId, containerId, new RunCommandRequestSync().command(command).secondsOfWait(secondsOfWait)));
+        executeAndCheck("runCommandInContainerSync", () -> service.runCommandInContainerSync(mediaNodeId, containerId, new RunCommandRequestSync().command(command).secondsOfWait(secondsOfWait)));
     }
 
     @Override
     public void runCommandInContainerAsync(String mediaNodeId, String containerId, String command) throws IOException {
-        execute(() -> service.runCommandInContainerAsync(mediaNodeId, containerId, new RunCommandRequestAsync().command(command)));
+        executeAndCheck("runCommandInContainerAsync", () -> service.runCommandInContainerAsync(mediaNodeId, containerId, new RunCommandRequestAsync().command(command)));
     }
 
     @Override
     public void waitForContainerStopped( String mediaNodeId,String containerId, int secondsOfWait) throws Exception {
-        execute(() -> service.waitForContainerStopped(mediaNodeId, containerId, new WaitForStopped().secondsOfWait(secondsOfWait)));
+        executeAndCheck("waitForContainerStopped", () -> service.waitForContainerStopped(mediaNodeId, containerId, new WaitForStopped().secondsOfWait(secondsOfWait)));
     }
 
     @Override
     public void cleanStrandedContainers(String imageName) {
-        execute(() -> service.cleanStrandedContainers(new CleanStrandedContainersRequest().image(imageName)));
+        executeAndCheck("cleanStrandedContainers", () -> service.cleanStrandedContainers(new CleanStrandedContainersRequest().image(imageName)));
     }
     @Override
     public void close() {
