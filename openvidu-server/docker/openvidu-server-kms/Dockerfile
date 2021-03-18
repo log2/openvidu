@@ -15,19 +15,12 @@ RUN echo "deb [arch=amd64] http://ubuntu.openvidu.io/6.16.0 bionic kms6" | tee /
 
 # Install Java, supervisor and netstat
 RUN apt-get update && apt-get install -y \
-  openjdk-11-jre \
-  supervisor && \
-  rm -rf /var/lib/apt/lists/*
+    openjdk-11-jre \
+    supervisor && \
+    rm -rf /var/lib/apt/lists/*
 
-# Configure supervisor
-RUN mkdir -p /var/log/supervisor
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Copy OpenVidu Server
-COPY openvidu-server.jar openvidu-server.jar
-
-# Copy KMS entrypoint
-COPY kms.sh /kms.sh
+# Prepare tzdata
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 
 # Cleanup
 RUN rm -rf /var/lib/apt/lists/* && \
@@ -37,5 +30,16 @@ EXPOSE 8888
 EXPOSE 9091
 EXPOSE 4443
 
+# Configure supervisor
+RUN mkdir -p /var/log/supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy KMS entrypoint
+COPY kms.sh /kms.sh
+
+# Copy OpenVidu Server
+COPY openvidu-server.jar openvidu-server.jar
+
 # Exec supervisord
 CMD ["/usr/bin/supervisord"]
+
