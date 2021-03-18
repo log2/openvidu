@@ -35,7 +35,7 @@ public class LocalCustomFileManager extends CustomFileManager {
 	}
 
 	public int maxSecondsWaitForFile() {
-		return 30;
+		return 90;
 	}
 
 }
