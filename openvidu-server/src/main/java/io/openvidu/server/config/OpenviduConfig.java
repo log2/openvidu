@@ -189,6 +189,8 @@ public class OpenviduConfig {
 
 	private String openviduRecordingComposedUrl;
 
+	private String openviduRecordingDockerHelperUrl;
+
 	private String certificateType;
 
 	protected int openviduSessionsGarbageInterval;
@@ -305,6 +307,10 @@ public class OpenviduConfig {
 
 	public String getOpenViduRecordingVersion() {
 		return this.openviduRecordingVersion;
+	}
+
+	public String getOpenViduRecordingDockerHelperUrl() {
+		return this.openviduRecordingDockerHelperUrl;
 	}
 
 	public int getOpenviduRecordingAutostopTimeout() {
@@ -597,6 +603,7 @@ public class OpenviduConfig {
 		openviduRecordingComposedBasicauth = asBoolean("OPENVIDU_RECORDING_COMPOSED_BASICAUTH");
 		openviduRecordingVersion = asNonEmptyString("OPENVIDU_RECORDING_VERSION");
 		openviduRecordingComposedUrl = asOptionalURL("OPENVIDU_RECORDING_COMPOSED_URL");
+		openviduRecordingDockerHelperUrl = asOptionalURL("OPENVIDU_RECORDING_DOCKER_HELPER_URL");
 		openviduRecordingEnableGPU = asBoolean("OPENVIDU_RECORDING_ENABLE_GPU");
 		configureRecordingImage("OPENVIDU_RECORDING_IMAGE");
 		checkOpenviduRecordingNotification();
