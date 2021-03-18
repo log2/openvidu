@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import io.openvidu.server.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.kurento.client.ErrorEvent;
 import org.kurento.client.EventListener;
@@ -79,7 +80,6 @@ import io.openvidu.server.utils.CustomFileManager;
 import io.openvidu.server.utils.DockerManager;
 import io.openvidu.server.utils.JsonUtils;
 import io.openvidu.server.utils.LocalCustomFileManager;
-import io.openvidu.server.utils.LocalDockerManager;
 import io.openvidu.server.utils.RecordingUtils;
 import io.openvidu.server.utils.RemoteOperationUtils;
 
@@ -178,7 +178,7 @@ public class RecordingManager {
 		this.checkRecordingRequirements(this.openviduConfig.getOpenViduRecordingPath(),
 				this.openviduConfig.getOpenviduRecordingCustomLayout());
 
-		LocalDockerManager dockMng = new LocalDockerManager(true);
+		DockerManager dockMng = DockerManagerFactory.createAndInitialize(openviduConfig);
 
 		if (!openviduConfig.isRecordingComposedExternal()) {
 			downloadRecordingImageToLocal(dockMng);
@@ -190,9 +190,7 @@ public class RecordingManager {
 
 	public void checkRecordingRequirements(String openviduRecordingPath, String openviduRecordingCustomLayout)
 			throws OpenViduException {
-		LocalDockerManager dockerManager = null;
-		try {
-			dockerManager = new LocalDockerManager(true);
+		try (DockerManager dockerManager = DockerManagerFactory.createAndInitialize(openviduConfig)) {
 			dockerManager.checkDockerEnabled();
 		} catch (OpenViduException e) {
 			String message = e.getMessage();
@@ -211,13 +209,11 @@ public class RecordingManager {
 			}
 			log.error(message);
 			throw e;
-		} finally {
-			dockerManager.close();
 		}
 		this.checkRecordingPaths(openviduRecordingPath, openviduRecordingCustomLayout);
 	}
 
-	private void downloadRecordingImageToLocal(LocalDockerManager dockMng) {
+	private void downloadRecordingImageToLocal(DockerManager dockMng) {
 		log.info("Recording module required: Downloading openvidu/openvidu-recording:"
 				+ openviduConfig.getOpenViduRecordingVersion() + " Docker image (350MB aprox)");
 

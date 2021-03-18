@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import io.openvidu.server.utils.*;
 import io.openvidu.server.core.TokenRegister;
 import org.bouncycastle.util.Arrays;
 import org.kurento.jsonrpc.internal.server.config.JsonRpcConfiguration;
@@ -181,7 +182,7 @@ public class OpenViduServer implements JsonRpcConfigurer {
 	@ConditionalOnMissingBean
 	@DependsOn("openviduConfig")
 	public RecordingManager recordingManager() {
-		return new RecordingManager(new LocalDockerManager(false), new LocalCustomFileManager());
+		return new RecordingManager(DockerManagerFactory.create(config), new LocalCustomFileManager());
 	}
 
 	@Bean

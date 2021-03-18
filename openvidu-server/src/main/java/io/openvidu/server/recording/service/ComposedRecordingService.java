@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.openvidu.server.utils.*;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
@@ -59,8 +60,6 @@ import io.openvidu.server.recording.RecordingDownloader;
 import io.openvidu.server.recording.RecordingInfoUtils;
 import io.openvidu.server.recording.RecordingUploader;
 import io.openvidu.server.rest.RequestMappings;
-import io.openvidu.server.utils.CustomFileManager;
-import io.openvidu.server.utils.DockerManager;
 
 public class ComposedRecordingService extends RecordingService {
 
