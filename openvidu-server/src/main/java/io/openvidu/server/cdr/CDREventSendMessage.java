@@ -11,7 +11,7 @@ public class CDREventSendMessage extends CDREvent {
 	private JsonObject message;
 	
 	public CDREventSendMessage(Participant participant, JsonObject message, Long timeStamp) {
-		super(CDREventName.messageSent, participant.getSessionId() , timeStamp);
+		super(CDREventName.messageSent, participant.getSessionId(), participant.getUniqueSessionId(), timeStamp);
 		this.participant = participant;
 		this.message = message;
 	}
