@@ -23,15 +23,20 @@ import io.openvidu.client.OpenViduException;
 import io.openvidu.server.utils.dockermanager.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.util.stream.Collectors.toList;
 
 final class ExternalizedDockerManager implements DockerManager {
     private static final Logger log = LoggerFactory.getLogger(ExternalizedDockerManager.class);
@@ -49,7 +54,7 @@ final class ExternalizedDockerManager implements DockerManager {
     }
     @Override
     public void checkDockerEnabled() throws OpenViduException {
-        execute(() -> service.checkEnabled());
+        executeAndCheck("checkEnabled", () -> service.checkEnabled());
     }
 
     @Override
@@ -59,7 +64,7 @@ final class ExternalizedDockerManager implements DockerManager {
 
     @Override
     public void downloadDockerImage(String image, int secondsOfWait) {
-        execute(() -> service.ensureImageAvailable(new EnsureImageAvailableRequest().image(image).secondsOfWait(secondsOfWait)));
+        executeAndCheck("ensureImageAvailable", () -> service.ensureImageAvailable(new EnsureImageAvailableRequest().image(image).secondsOfWait(secondsOfWait)));
     }
 
     @Override
@@ -70,10 +75,41 @@ final class ExternalizedDockerManager implements DockerManager {
                 .image(image)
                 .containerName(containerName)
                 .user(user)
+                .volumes(translate(volumes, dockerVolume -> new io.openvidu.server.utils.dockermanager.model.Volume
+                        ().path(dockerVolume.getPath())
+                ))
+                .binds(translate(binds, dockerBind -> new io.openvidu.server.utils.dockermanager.model.Bind
+                                ().path(dockerBind.getPath())
+                                .accessMode(AccessMode.fromValue(dockerBind.getAccessMode().name()))
+                                .propagationMode(PropagationMode.fromValue(dockerBind.getPropagationMode().name()))
+                                .selContext(SELContext.fromValue(dockerBind.getSecMode().name())) // FIXME mapping issue for different case SELContext modes
+                                .volume(new io.openvidu.server.utils.dockermanager.model.Volume().path(dockerBind.getVolume().getPath()))
+                                .noCopy(dockerBind.getNoCopy())
+                        //
+                ))
                 .networkMode(networkMode)
+                .envs(envs)
+                .shmSize(shmSize)
                 .privileged(privileged));
         Response<String> response = call.execute();
         return response.body();
+    }
+
+    private static <A, B> List<B> translate(Class<A> aClass, Class<B> bClass, Collection<A> input) {
+        Function<? super A, ? extends B> typeTransformer = transformer(aClass, bClass);
+        return translate(input, typeTransformer);
+    }
+
+    private static <A, B> List<B> translate(Collection<A> input, Function<? super A, ? extends B> typeTransformer) {
+        return input.stream().map(typeTransformer).collect(toList());
+    }
+
+    private static <A, B> Function<? super A, ? extends B> transformer(Class<A> aClass, Class<B> bClass) {
+        return a -> {
+            B b = BeanUtils.instantiateClass(bClass);
+            BeanUtils.copyProperties(a, b);
+            return b;
+        };
     }
 
     private <T> Response<T> execute(Supplier<Call<T>> callSupplier) {
@@ -84,32 +120,40 @@ final class ExternalizedDockerManager implements DockerManager {
         }
     }
 
+    private void executeAndCheck(String name, Supplier<Call<BasicResponse>> callSupplier) {
+        BasicResponse basicResponse = execute(callSupplier).body();
+        if (!basicResponse.getSuccess()) {
+            throw new OpenViduException(OpenViduException.Code.GENERIC_ERROR_CODE, "Failed call " + name + ", due to: \"" + basicResponse.getMessage() + "");
+        }
+    }
+
+
     @Override
-    public void removeContainer( String mediaNodeId, String containerId, boolean force) {
-        if (force) execute(() ->
+    public void removeContainer(String mediaNodeId, String containerId, boolean force) {
+        if (force) executeAndCheck("removeContainerForced", () ->
                 service.removeContainerForced(mediaNodeId, containerId));
-        else execute(() -> service.removeContainer(mediaNodeId, containerId));
+        else executeAndCheck("removeContainer", () -> service.removeContainer(mediaNodeId, containerId));
     }
 
     @Override
     public void runCommandInContainerSync(String mediaNodeId, String containerId, String command, int secondsOfWait)
             throws IOException {
-        execute(() -> service.runCommandInContainerSync(mediaNodeId, containerId, new RunCommandRequestSync().command(command).secondsOfWait(secondsOfWait)));
+        executeAndCheck("runCommandInContainerSync", () -> service.runCommandInContainerSync(mediaNodeId, containerId, new RunCommandRequestSync().command(command).secondsOfWait(secondsOfWait)));
     }
 
     @Override
     public void runCommandInContainerAsync(String mediaNodeId, String containerId, String command) throws IOException {
-        execute(() -> service.runCommandInContainerAsync(mediaNodeId, containerId, new RunCommandRequestAsync().command(command)));
+        executeAndCheck("runCommandInContainerAsync", () -> service.runCommandInContainerAsync(mediaNodeId, containerId, new RunCommandRequestAsync().command(command)));
     }
 
     @Override
     public void waitForContainerStopped( String mediaNodeId,String containerId, int secondsOfWait) throws Exception {
-        execute(() -> service.waitForContainerStopped(mediaNodeId, containerId, new WaitForStopped().secondsOfWait(secondsOfWait)));
+        executeAndCheck("waitForContainerStopped", () -> service.waitForContainerStopped(mediaNodeId, containerId, new WaitForStopped().secondsOfWait(secondsOfWait)));
     }
 
     @Override
     public void cleanStrandedContainers(String imageName) {
-        execute(() -> service.cleanStrandedContainers(new CleanStrandedContainersRequest().image(imageName)));
+        executeAndCheck("cleanStrandedContainers", () -> service.cleanStrandedContainers(new CleanStrandedContainersRequest().image(imageName)));
     }
     @Override
     public void close() {

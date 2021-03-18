@@ -14,7 +14,7 @@ paths:
         content: {}
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -33,7 +33,7 @@ paths:
               $ref: '#/components/schemas/CleanStrandedContainersRequest'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -53,7 +53,7 @@ paths:
               $ref: '#/components/schemas/RunContainerRequest'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -74,7 +74,7 @@ paths:
               $ref: '#/components/schemas/RunContainerRequest'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -95,7 +95,7 @@ paths:
               $ref: '#/components/schemas/RunCommandRequestSync'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -116,7 +116,7 @@ paths:
               $ref: '#/components/schemas/WaitForStopped'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -137,7 +137,7 @@ paths:
               $ref: '#/components/schemas/RunCommandRequestAsync'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -158,7 +158,7 @@ paths:
               $ref: '#/components/schemas/RunContainerRequest'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -196,7 +196,7 @@ paths:
               $ref: '#/components/schemas/EnsureImageAvailableRequest'
       responses:
         '200':
-          $ref: '#/components/responses/OK'
+          $ref: '#/components/responses/Basic'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -209,17 +209,7 @@ paths:
       operationId: probeLive
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                title: ProbeLiveInfo
-                properties:
-                  id:
-                    type: string
-                required:
-                  - id
+          $ref: '#/components/responses/Basic'
 
   '/probe/ready':
     get:
@@ -228,17 +218,7 @@ paths:
       operationId: probeReady
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                title: ProbeReadyInfo
-                properties:
-                  id:
-                    $ref: '#/components/schemas/Id'
-                required:
-                  - id
+          $ref: '#/components/responses/Basic'
 
   '/version':
     get:
@@ -269,18 +249,18 @@ components:
   responses:
 
     Error:
-      description: error
+      description: basic response with error
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/BasicResponse'
 
-    OK:
-      description: ok
+    Basic:
+      description: basic response (success and message)
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/OKResponse'
+            $ref: '#/components/schemas/BasicResponse'
 
     ImageAvailable:
       description: image available response
@@ -316,41 +296,23 @@ components:
 
   schemas:
 
-    OKResponse:
+    BasicResponse:
       type: object
       properties:
-        dummy:
+        success:
+          type: boolean
+        message:
           type: string
+      required:
+        - success
 
     ImageAvailableResponse:
       type: object
       properties:
         available:
           type: boolean
-
-    ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        logCorrelationId:
-          type: string
-        i18n:
-          type: object
-          properties:
-            code:
-              type: string
-            params:
-              type: object
-              additionalProperties:
-                type: string
-          required:
-            - code
       required:
-        - logCorrelationId
-
+        - available
     Id:
       type: string
       description: system autogenerated id
@@ -375,19 +337,6 @@ components:
 
     CommandPart:
       type: string
-
-    User:
-      type: string
-
-    SharedMemSize:
-      type: integer
-
-    Env:
-      type: string
-      pattern: ".+=.+"
-
-    Privileged:
-      type: boolean
 
     RunCommandRequestSync:
       properties:
@@ -420,13 +369,13 @@ components:
         user:
           $ref: '#/components/schemas/User'
         volumes:
-          $ref: '#/components/schemas/Volume'
+          $ref: '#/components/schemas/Volumes'
         binds:
-          $ref: '#/components/schemas/Bind'
+          $ref: '#/components/schemas/Binds'
         networkMode:
           $ref: '#/components/schemas/NetworkMode'
         envs:
-          $ref: '#/components/schemas/Env'
+          $ref: '#/components/schemas/Envs'
         command:
           $ref: '#/components/schemas/CommandPart'
         shmSize:
@@ -435,6 +384,106 @@ components:
           $ref: '#/components/schemas/Privileged'
         labels:
           $ref: '#/components/schemas/Labels'
+      required:
+        - image
+        - containerName
+        - user
+        - networkMode
+        - envs
+        - command
+        - shmSize
+        - privileged
+        - labels
+
+    User:
+      type: string
+
+    SharedMemSize:
+      type: integer
+      format: int64
+
+    Env:
+      type: string
+      pattern: ".+=.+"
+
+    Envs:
+      type: array
+      items:
+        $ref: '#/components/schemas/Env'
+
+    Privileged:
+      type: boolean
+
+    Path:
+      type: string
+
+    Volume:
+      properties:
+        path:
+          $ref: '#/components/schemas/Path'
+      required:
+        - path
+
+    Volumes:
+      type: array
+      items:
+        $ref: '#/components/schemas/Volume'
+
+    NetworkMode:
+      type: string
+
+    AccessMode:
+      type: string
+      nullable: true
+      enum:
+        - rw
+        - ro
+
+    PropagationMode:
+      type: string
+      nullable: true
+      enum:
+        - ""
+        - shared
+        - slave
+        - private
+
+    SELContext:
+      type: string
+      nullable: true
+      enum:
+        - ""
+        - z
+        - Z_UPPER # should be simply "Z", changed to avoid conflict in generated Java code
+
+    Bind:
+      properties:
+        volume:
+          $ref: '#/components/schemas/Volume'
+        path:
+          $ref: '#/components/schemas/Path'
+        noCopy:
+          type: boolean
+        accessMode:
+          $ref: '#/components/schemas/AccessMode'
+        propagationMode:
+          $ref: '#/components/schemas/PropagationMode'
+        selContext:
+          $ref: '#/components/schemas/SELContext'
+
+    Binds:
+      type: array
+      items:
+        $ref: '#/components/schemas/Bind'
+
+    Labels:
+      type: string
+
+    Image:
+      type: string
+
+    VersionInfo:
+      type: string
 
     CheckImageAvailableRequest:
       properties:
@@ -459,25 +508,8 @@ components:
         image:
           $ref: '#/components/schemas/Image'
 
-    Volume:
-      type: string
 
-    NetworkMode:
-      type: string
-
-    Bind:
-      type: string
-
-    Labels:
-      type: string
-
-    Image:
-      type: string
-
-    VersionInfo:
-      type: string
 
     Timeout:
       type: integer
       minimum: 1
-
