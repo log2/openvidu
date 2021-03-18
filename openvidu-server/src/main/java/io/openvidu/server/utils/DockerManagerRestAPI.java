@@ -11,38 +11,38 @@ public interface DockerManagerRestAPI {
                               @Body RunContainerRequest runContainerRequest);
 
     @DELETE("/containers/{mediaNodeId}/container/{containerId}")
-    void removeContainer(@Path("mediaNodeId") String mediaNodeId,
+    Call<OKResponse> removeContainer(@Path("mediaNodeId") String mediaNodeId,
                          @Path("containerId") String containerId);
 
     @DELETE("/containers/{mediaNodeId}/container/{containerId}/forced")
-    void removeContainerForced(@Path("mediaNodeId") String mediaNodeId,
+    Call<OKResponse>  removeContainerForced(@Path("mediaNodeId") String mediaNodeId,
                                @Path("containerId") String containerId);
 
     @POST("/containers/{mediaNodeId}/container/{containerId}/runAndWait")
-    void runCommandInContainerSync(@Path("mediaNodeId") String mediaNodeId,
+    Call<OKResponse>  runCommandInContainerSync(@Path("mediaNodeId") String mediaNodeId,
                                    @Path("containerId") String containerId,
                                    @Body RunCommandRequestSync runCommandRequestSync);
 
     @POST("/containers/{mediaNodeId}/container/{containerId}/run")
-    void runCommandInContainerAsync(@Path("mediaNodeId") String mediaNodeId,
+    Call<OKResponse>  runCommandInContainerAsync(@Path("mediaNodeId") String mediaNodeId,
                                     @Path("containerId") String containerId,
                                     @Body RunCommandRequestAsync runCommandRequestAsync);
 
     @POST("/containers/{mediaNodeId}/container/{containerId}/join")
-    void waitForContainerStopped(@Path("mediaNodeId") String mediaNodeId,
+    Call<OKResponse>  waitForContainerStopped(@Path("mediaNodeId") String mediaNodeId,
                                  @Path("containerId") String containerId,
-                                 @Body WaitForStopped waitForStopped) throws Exception;
+                                 @Body WaitForStopped waitForStopped) ;
 
 
     @POST("/containers/cleanup")
-    void cleanStrandedContainers(@Body CleanStrandedContainersRequest cleanStrandedContainersRequest);
+    Call<OKResponse>  cleanStrandedContainers(@Body CleanStrandedContainersRequest cleanStrandedContainersRequest);
 
     @GET("/containers/check")
-    void checkEnabled();
+    Call<OKResponse>  checkEnabled();
 
     @POST("/images/ensure")
-    void ensureImageAvailable(@Body EnsureImageAvailableRequest ensureImageAvailableRequest);
+    Call<OKResponse>  ensureImageAvailable(@Body EnsureImageAvailableRequest ensureImageAvailableRequest);
 
     @POST("/images/check")
-    boolean checkImageAvailable(@Body CheckImageAvailableRequest checkImageAvailableRequest);
+    Call<ImageAvailableResponse> checkImageAvailable(@Body CheckImageAvailableRequest checkImageAvailableRequest);
 }
