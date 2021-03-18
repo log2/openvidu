@@ -434,9 +434,16 @@ public class ComposedRecordingService extends RecordingService {
 
 	protected void waitForVideoFileNotEmpty(Recording recording) throws Exception {
 		final String VIDEO_FILE = this.openviduConfig.getOpenViduRecordingPath() + recording.getId() + "/"
-				+ recording.getName() + RecordingService.COMPOSED_RECORDING_EXTENSION;
-		this.fileManager.waitForFileToExistAndNotEmpty(recording.getRecordingProperties().mediaNode(), VIDEO_FILE);
-		log.info("File {} exists and is not empty", VIDEO_FILE);
+				+ RecordingService.RECORDING_ENTITY_FILE + recording.getName();
+		try {
+			this.fileManager.waitForFileToExistAndNotEmpty(recording.getRecordingProperties().mediaNode(), VIDEO_FILE);
+			log.info("File {} exists and is not empty", VIDEO_FILE);
+		}
+		catch (Exception e) {
+			log.error("Recorder container failed generating video file (is empty) for session {}",
+					recording.getSessionId());
+			throw e;
+		}
 	}
 
 	protected void failRecordingCompletion(Recording recording, String containerId, boolean removeContainer,
