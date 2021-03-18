@@ -1,0 +1,438 @@
+openapi: 3.0.0
+info:
+  version: "0.1.0"
+  title: K8S OpenVidu Actuator API
+
+paths:
+  '/containers/check':
+    get:
+      tags:
+        - common
+      operationId: checkEnabled
+      parameters: [ ]
+      requestBody:
+        content: {}
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/cleanup':
+    post:
+      tags:
+        - common
+      operationId: cleanStrandedContainers
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CleanStrandedContainersRequest'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/{mediaNodeId}':
+    post:
+      tags:
+        - common
+      operationId: runContainer
+      parameters:
+        - $ref: '#/components/parameters/MediaNodeId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunContainerRequest'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/{mediaNodeId}/container/{containerId}':
+    delete:
+      tags:
+        - common
+      operationId: deleteContainer
+      parameters:
+        - $ref: '#/components/parameters/MediaNodeId'
+        - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunContainerRequest'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/{mediaNodeId}/container/{containerId}/runAndWait':
+    post:
+      tags:
+        - common
+      operationId: runCommandSync
+      parameters:
+        - $ref: '#/components/parameters/MediaNodeId'
+        - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunCommandRequestSync'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/{mediaNodeId}/container/{containerId}/join':
+    post:
+      tags:
+        - common
+      operationId: waitForStopped
+      parameters:
+        - $ref: '#/components/parameters/MediaNodeId'
+        - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaitForStopped'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/{mediaNodeId}/container/{containerId}/run':
+    post:
+      tags:
+        - common
+      operationId: runCommandAsync
+      parameters:
+        - $ref: '#/components/parameters/MediaNodeId'
+        - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunCommandRequestAsync'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/containers/{mediaNodeId}/container/{containerId}/forced':
+    delete:
+      tags:
+        - common
+      operationId: deleteContainerForced
+      parameters:
+        - $ref: '#/components/parameters/MediaNodeId'
+        - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunContainerRequest'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/images/check':
+    post:
+      tags:
+        - common
+      operationId: checkImageAvailable
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckImageAvailableRequest'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/images/pull':
+    post:
+      tags:
+        - common
+      operationId: ensureImageAvailable
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnsureImageAvailableRequest'
+      responses:
+        '4XX':
+          $ref: '#/components/responses/Error'
+        '5XX':
+          $ref: '#/components/responses/Error'
+
+  '/probe/live':
+    get:
+      tags:
+        - probe
+      operationId: probeLive
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                title: ProbeLiveInfo
+                properties:
+                  id:
+                    type: string
+                required:
+                  - id
+
+  '/probe/ready':
+    get:
+      tags:
+        - probe
+      operationId: probeReady
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                title: ProbeReadyInfo
+                properties:
+                  id:
+                    $ref: '#/components/schemas/Id'
+                required:
+                  - id
+
+  '/version':
+    get:
+      tags:
+        - version
+      operationId: getVersionInfo
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+
+components:
+
+  requestBodies: { }
+
+
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+
+    Error:
+      description: error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+
+  parameters:
+
+    MediaNodeId:
+      in: path
+      name: mediaNodeId
+      required: true
+      schema:
+        $ref: '#/components/schemas/MediaNodeId'
+
+
+    ContainerId:
+      in: path
+      name: containerId
+      required: true
+      schema:
+        $ref: '#/components/schemas/ContainerId'
+
+
+
+
+
+
+
+
+
+  schemas:
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        logCorrelationId:
+          type: string
+        i18n:
+          type: object
+          properties:
+            code:
+              type: string
+            params:
+              type: object
+              additionalProperties:
+                type: string
+          required:
+            - code
+      required:
+        - logCorrelationId
+
+    Id:
+      type: string
+      description: system autogenerated id
+      readOnly: true
+      pattern: '[a-zA-Z0-9]{1,30}'
+
+    MediaNodeId:
+      type: string
+      description: system autogenerated id
+      readOnly: true
+      pattern: '[a-zA-Z0-9]{1,30}'
+
+    ContainerId:
+      type: string
+      description: id of generated container
+
+    ContainerName:
+      type: string
+
+    Command:
+      type: string
+
+    CommandPart:
+      type: string
+
+    User:
+      type: string
+
+    SharedMemSize:
+      type: integer
+
+    Env:
+      type: string
+      pattern: ".+=.+"
+
+    Privileged:
+      type: boolean
+
+    RunCommandRequestSync:
+      properties:
+        secondsOfWait:
+          $ref: '#/components/schemas/Timeout'
+        command:
+          $ref: '#/components/schemas/Command'
+      required:
+        - command
+        - secondsOfWait
+
+    RunCommandRequestAsync:
+      properties:
+        command:
+          $ref: '#/components/schemas/Command'
+      required:
+        - command
+
+    WaitForStopped:
+      properties:
+        secondsOfWait:
+          $ref: '#/components/schemas/Timeout'
+
+    RunContainerRequest:
+      properties:
+        image:
+          $ref: '#/components/schemas/Image'
+        containerName:
+          $ref: '#/components/schemas/ContainerName'
+        user:
+          $ref: '#/components/schemas/User'
+        volumes:
+          $ref: '#/components/schemas/Volume'
+        binds:
+          $ref: '#/components/schemas/Bind'
+        networkMode:
+          $ref: '#/components/schemas/NetworkMode'
+        envs:
+          $ref: '#/components/schemas/Env'
+        command:
+          $ref: '#/components/schemas/CommandPart'
+        shmSize:
+          $ref: '#/components/schemas/SharedMemSize'
+        privileged:
+          $ref: '#/components/schemas/Privileged'
+        labels:
+          $ref: '#/components/schemas/Labels'
+
+    CheckImageAvailableRequest:
+      properties:
+        image:
+          $ref: '#/components/schemas/Image'
+      required:
+        - image
+
+    EnsureImageAvailableRequest:
+      properties:
+        image:
+          $ref: '#/components/schemas/Image'
+        secondsOfWait:
+          $ref: '#/components/schemas/Timeout'
+      required:
+        - image
+        - secondsOfWait
+
+
+    CleanStrandedContainersRequest:
+      properties:
+        image:
+          $ref: '#/components/schemas/Image'
+
+    Volume:
+      type: string
+
+    NetworkMode:
+      type: string
+
+    Bind:
+      type: string
+
+    Labels:
+      type: string
+
+    Image:
+      type: string
+
+    VersionInfo:
+      type: string
+
+    Timeout:
+      type: integer
+      minimum: 1
+
