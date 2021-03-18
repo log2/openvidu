@@ -295,7 +295,7 @@ public class ComposedRecordingService extends RecordingService {
 			}
 		} else {
 
-			stopAndRemoveRecordingContainer(recording, containerId, 30);
+			stopAndRemoveRecordingContainer(recording, containerId, 120);
 
 			if (session != null && reason != null) {
 				this.recordingManager.sessionHandler.sendRecordingStoppedNotification(session, recording, reason);
@@ -390,14 +390,14 @@ public class ComposedRecordingService extends RecordingService {
 		}
 
 		// Wait for the container to be gracefully self-stopped
-		final int timeOfWait = 30;
 		try {
 			dockerManager.waitForContainerStopped(recording.getRecordingProperties().mediaNode(), containerId,
-					timeOfWait);
+					secondsOfWait);
 		} catch (Exception e) {
-			failRecordingCompletion(recording, containerId, true,
-					new OpenViduException(Code.RECORDING_COMPLETION_ERROR_CODE,
-							"The recording completion process couldn't finish in " + timeOfWait + " seconds"));
+			final OpenViduException openViduException = new OpenViduException(Code.RECORDING_COMPLETION_ERROR_CODE,
+					"The recording completion process couldn't finish in " + secondsOfWait + " seconds");
+			openViduException.initCause(e);
+			failRecordingCompletion(recording, containerId, true, openViduException);
 		}
 
 		// Remove container
