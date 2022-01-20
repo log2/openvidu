@@ -63,7 +63,7 @@ final class ExternalizedDockerManager implements DockerManager {
     @Override
     public String runContainer(String mediaNodeId, String image, String containerName, String user,
                                List<Volume> volumes, List<Bind> binds, String networkMode, List<String> envs, List<String> command,
-                               Long shmSize, boolean privileged, Map<String, String> labels) throws Exception {
+                               Long shmSize, boolean privileged, Map<String, String> labels, boolean enableGPU) throws Exception {
         Call<String> call = service.runContainer(mediaNodeId, new RunContainerRequest()
                 .image(image)
                 .containerName(containerName)
