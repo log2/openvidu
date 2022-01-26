@@ -25,6 +25,7 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.StringUtils;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -43,7 +44,7 @@ import static java.util.stream.Collectors.toList;
 final class ExternalizedDockerManager implements DockerManager {
     private static final Logger log = LoggerFactory.getLogger(ExternalizedDockerManager.class);
     public static final String DEFAULT_MEDIA_NODE_ID = "default";
-    private DockerManagerRestAPI service;
+    private final DockerManagerRestAPI service;
 
     ExternalizedDockerManager(boolean init, String openViduRecordingDockerHelperUrl) {
         Retrofit retrofit = new Retrofit.Builder()
@@ -65,9 +66,10 @@ final class ExternalizedDockerManager implements DockerManager {
     public DockerManager init() {
         return this;
     }
+
     @Override
     public void checkDockerEnabled() throws OpenViduException {
-        executeAndCheck("checkEnabled", () -> service.checkEnabled());
+        executeAndCheck("checkEnabled", service::checkEnabled);
     }
 
     @Override
@@ -84,7 +86,7 @@ final class ExternalizedDockerManager implements DockerManager {
     public String runContainer(String mediaNodeId, String image, String containerName, String user,
                                List<Volume> volumes, List<Bind> binds, String networkMode, List<String> envs, List<String> command,
                                Long shmSize, boolean privileged, Map<String, String> labels, boolean enableGPU) throws Exception {
-        Call<String> call = service.runContainer(mediaNodeId, new RunContainerRequest()
+        Call<String> call = service.runContainer(getMediaNodeId(mediaNodeId), new RunContainerRequest()
                 .image(image)
                 .containerName(containerName)
                 .user(user)
@@ -108,21 +110,8 @@ final class ExternalizedDockerManager implements DockerManager {
         return response.body();
     }
 
-    private static <A, B> List<B> translate(Class<A> aClass, Class<B> bClass, Collection<A> input) {
-        Function<? super A, ? extends B> typeTransformer = transformer(aClass, bClass);
-        return translate(input, typeTransformer);
-    }
-
     private static <A, B> List<B> translate(Collection<A> input, Function<? super A, ? extends B> typeTransformer) {
         return input.stream().map(typeTransformer).collect(toList());
-    }
-
-    private static <A, B> Function<? super A, ? extends B> transformer(Class<A> aClass, Class<B> bClass) {
-        return a -> {
-            B b = BeanUtils.instantiateClass(bClass);
-            BeanUtils.copyProperties(a, b);
-            return b;
-        };
     }
 
     private <T> Response<T> execute(Supplier<Call<T>> callSupplier) {
@@ -140,36 +129,40 @@ final class ExternalizedDockerManager implements DockerManager {
         }
     }
 
-
     @Override
     public void removeContainer(String mediaNodeId, String containerId, boolean force) {
+        final String mediaNode = getMediaNodeId(mediaNodeId);
         if (force) executeAndCheck("removeContainerForced", () ->
-                service.removeContainerForced(mediaNodeId, containerId));
-        else executeAndCheck("removeContainer", () -> service.removeContainer(mediaNodeId, containerId));
+                service.removeContainerForced(mediaNode, containerId));
+        else executeAndCheck("removeContainer", () -> service.removeContainer(mediaNode, containerId));
     }
 
     @Override
-    public void runCommandInContainerSync(String mediaNodeId, String containerId, String command, int secondsOfWait)
-            throws IOException {
-        executeAndCheck("runCommandInContainerSync", () -> service.runCommandInContainerSync(mediaNodeId, containerId, new RunCommandRequestSync().command(command).secondsOfWait(secondsOfWait)));
+    public void runCommandInContainerSync(String mediaNodeId, String containerId, String command, int secondsOfWait) {
+        executeAndCheck("runCommandInContainerSync", () -> service.runCommandInContainerSync(getMediaNodeId(mediaNodeId), containerId, new RunCommandRequestSync().command(command).secondsOfWait(secondsOfWait)));
     }
 
     @Override
-    public void runCommandInContainerAsync(String mediaNodeId, String containerId, String command) throws IOException {
-        executeAndCheck("runCommandInContainerAsync", () -> service.runCommandInContainerAsync(mediaNodeId, containerId, new RunCommandRequestAsync().command(command)));
+    public void runCommandInContainerAsync(String mediaNodeId, String containerId, String command) {
+        executeAndCheck("runCommandInContainerAsync", () -> service.runCommandInContainerAsync(getMediaNodeId(mediaNodeId), containerId, new RunCommandRequestAsync().command(command)));
     }
 
     @Override
-    public void waitForContainerStopped( String mediaNodeId,String containerId, int secondsOfWait) throws Exception {
-        executeAndCheck("waitForContainerStopped", () -> service.waitForContainerStopped(mediaNodeId, containerId, new WaitForStopped().secondsOfWait(secondsOfWait)));
+    public void waitForContainerStopped(String mediaNodeId, String containerId, int secondsOfWait) {
+        executeAndCheck("waitForContainerStopped", () -> service.waitForContainerStopped(getMediaNodeId(mediaNodeId), containerId, new WaitForStopped().secondsOfWait(secondsOfWait)));
     }
 
     @Override
     public void cleanStrandedContainers(String imageName) {
         executeAndCheck("cleanStrandedContainers", () -> service.cleanStrandedContainers(new CleanStrandedContainersRequest().image(imageName)));
     }
+
     @Override
     public void close() {
         // Do nothing
+    }
+
+    private String getMediaNodeId(String mediaNodeId) {
+        return StringUtils.hasText(mediaNodeId) ? mediaNodeId : DEFAULT_MEDIA_NODE_ID;
     }
 }
