@@ -17,19 +17,16 @@
 
 package io.openvidu.server.kurento.endpoint;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.openvidu.java.client.IceServerProperties;
 import io.openvidu.server.utils.ice.IceCandidateDataParser;
 import io.openvidu.server.utils.ice.IceCandidateType;
+import org.apache.commons.lang.StringUtils;
 import org.kurento.client.BaseRtpEndpoint;
 import org.kurento.client.Continuation;
 import org.kurento.client.Endpoint;
@@ -77,6 +74,8 @@ import io.openvidu.server.utils.RemoteOperationUtils;
  * @author Pablo Fuente (pablofuenteperez@gmail.com)
  */
 public abstract class MediaEndpoint {
+    private String ICE_SERVER_URL_DELIMITER = ":";
+
 	private static Logger log;
 	private OpenviduConfig openviduConfig;
 
@@ -283,6 +282,28 @@ public abstract class MediaEndpoint {
 		unregisterElementErrListener(endpoint, endpointSubscription);
 	}
 
+    /**
+     * Search inside the token the configuration of the input protocol
+     *
+     * @param protocol
+     * @return Optional<String[]>
+     */
+    private Optional<IceServerProperties> getIceConfig(String protocol) {
+        return owner.getToken().getCustomIceServers().stream()
+                .filter(iceServer -> iceServer.getUrl().startsWith(protocol)).findAny();
+    }
+
+    /**
+     * Parse IceUrl splitting it and checking if is well-formed
+     *
+     * @param url
+     * @return Optional<String[]>
+     */
+    private Optional<String[]> getSplittedIceUrl(String url) {
+        String[] tokens = url.split(ICE_SERVER_URL_DELIMITER);
+        return tokens.length == 3 ? Optional.of(tokens) : Optional.empty();
+    }
+
 	/**
 	 * Creates the endpoint (RTP or WebRTC) and any other additional elements (if
 	 * needed).
@@ -299,12 +320,19 @@ public abstract class MediaEndpoint {
 				@Override
 				public void onSuccess(WebRtcEndpoint result) throws Exception {
 					webEndpoint = result;
-					String kmsUri = owner.getSession().getKms().getUri();
-					String coturnIp = openviduConfig.getCoturnIp(kmsUri);
-					if (coturnIp != null && !coturnIp.isEmpty()) {
-						webEndpoint.setStunServerAddress(coturnIp);
-						webEndpoint.setStunServerPort(openviduConfig.getCoturnPort());
-					}
+					// Format of url from config: protocol:host:port
+                    getIceConfig("stun").ifPresent(
+                            stunConfig -> getSplittedIceUrl(stunConfig.getUrl()).ifPresent(tokens -> {
+                                webEndpoint.setStunServerAddress(tokens[1]);
+                                webEndpoint.setStunServerPort(Integer.parseInt(tokens[2]));
+                            })
+                    );
+                    getIceConfig("turn").ifPresent(
+                            turnConfig -> getSplittedIceUrl(turnConfig.getUrl()).ifPresent(tokens -> {
+                                String turnUrl = StringUtils.removeStart(turnConfig.getUrl(), tokens[0] + ICE_SERVER_URL_DELIMITER);
+                                webEndpoint.setTurnUrl(String.format("%s:%s@%s", turnConfig.getUsername(), turnConfig.getCredential(), turnUrl));
+                            })
+                    );
 
 					endpointLatch.countDown();
 
