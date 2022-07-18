@@ -321,18 +321,25 @@ public abstract class MediaEndpoint {
 				public void onSuccess(WebRtcEndpoint result) throws Exception {
 					webEndpoint = result;
 					// Format of url from config: protocol:host:port
-                    getIceConfig("stun").ifPresent(
-                            stunConfig -> getSplittedIceUrl(stunConfig.getUrl()).ifPresent(tokens -> {
-                                webEndpoint.setStunServerAddress(tokens[1]);
-                                webEndpoint.setStunServerPort(Integer.parseInt(tokens[2]));
-                            })
-                    );
-                    getIceConfig("turn").ifPresent(
-                            turnConfig -> getSplittedIceUrl(turnConfig.getUrl()).ifPresent(tokens -> {
-                                String turnUrl = StringUtils.removeStart(turnConfig.getUrl(), tokens[0] + ICE_SERVER_URL_DELIMITER);
-                                webEndpoint.setTurnUrl(String.format("%s:%s@%s", turnConfig.getUsername(), turnConfig.getCredential(), turnUrl));
-                            })
-                    );
+					getIceConfig("stun").ifPresent(
+							stunConfig -> getSplittedIceUrl(stunConfig.getUrl()).ifPresent(tokens -> {
+								webEndpoint.setStunServerAddress(tokens[1]);
+								webEndpoint.setStunServerPort(Integer.parseInt(tokens[2]));
+							})
+					);
+					getIceConfig("turn").ifPresent(
+							turnConfig -> getSplittedIceUrl(turnConfig.getUrl()).ifPresent(tokens -> {
+								String turnUrl = StringUtils.removeStart(turnConfig.getUrl(), tokens[0] + ICE_SERVER_URL_DELIMITER);
+								String coturnHostFrom = openviduConfig.getCoturnHostSubstFrom();
+								String coturnHostTo = openviduConfig.getCoturnHostSubstTo();
+
+								if (isReplaceEnabled(coturnHostFrom, coturnHostTo)) {
+									turnUrl = turnUrl.replace(coturnHostFrom, coturnHostTo);
+								}
+
+								webEndpoint.setTurnUrl(String.format("%s:%s@%s", turnConfig.getUsername(), turnConfig.getCredential(), turnUrl));
+							})
+					);
 
 					endpointLatch.countDown();
 
@@ -456,6 +463,10 @@ public abstract class MediaEndpoint {
 				}
 			});
 		}
+	}
+
+	private boolean isReplaceEnabled(String coturnHostFrom, String coturnHostTo) {
+		return StringUtils.isNotEmpty(coturnHostFrom) && StringUtils.isNotEmpty(coturnHostTo);
 	}
 
 	/**
