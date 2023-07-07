@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import io.openvidu.server.utils.*;
+import org.bouncycastle.util.Arrays;
 import org.kurento.jsonrpc.internal.server.config.JsonRpcConfiguration;
 import org.kurento.jsonrpc.server.JsonRpcConfigurer;
 import org.kurento.jsonrpc.server.JsonRpcHandlerRegistry;
@@ -73,14 +75,6 @@ import io.openvidu.server.rest.ApiRestPathRewriteFilter;
 import io.openvidu.server.rest.RequestMappings;
 import io.openvidu.server.rpc.RpcHandler;
 import io.openvidu.server.rpc.RpcNotificationService;
-import io.openvidu.server.utils.CommandExecutor;
-import io.openvidu.server.utils.GeoLocationByIp;
-import io.openvidu.server.utils.GeoLocationByIpDummy;
-import io.openvidu.server.utils.LocalCustomFileManager;
-import io.openvidu.server.utils.LocalDockerManager;
-import io.openvidu.server.utils.MediaNodeManager;
-import io.openvidu.server.utils.MediaNodeManagerDummy;
-import io.openvidu.server.utils.SDPMunging;
 import io.openvidu.server.webhook.CDRLoggerWebhook;
 
 /**
@@ -180,7 +174,7 @@ public class OpenViduServer implements JsonRpcConfigurer {
 	@ConditionalOnMissingBean
 	@DependsOn("openviduConfig")
 	public RecordingManager recordingManager() {
-		return new RecordingManager(new LocalDockerManager(false), new LocalCustomFileManager());
+		return new RecordingManager(DockerManagerFactory.create(config), new LocalCustomFileManager());
 	}
 
 	@Bean

@@ -173,6 +173,67 @@
 		</profile>
 	</profiles>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>4.3.0</version>
+				<configuration>
+					<generatorName>java</generatorName>
+					<!-- See more at: https://openapi-generator.tech/docs/generators/java/ -->
+					<configOptions>
+						<sourceFolder>openapi</sourceFolder>
+						<dateLibrary>java8</dateLibrary>
+						<java8>true</java8>
+						<openApiNullable>true</openApiNullable>
+						<hideGenerationTimestamp>true</hideGenerationTimestamp>
+					</configOptions>
+					<output>target/generated-sources</output>
+					<generateApis>false</generateApis>
+					<generateApiTests>false</generateApiTests>
+					<generateApiDocumentation>false</generateApiDocumentation>
+					<generateModelTests>false</generateModelTests>
+					<generateModelDocumentation>false</generateModelDocumentation>
+					<generateSupportingFiles>false</generateSupportingFiles>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<id>allApi</id>
+						<configuration>
+							<inputSpec>${basedir}/src/main/resources/restApi.yaml</inputSpec>
+							<modelPackage>io.openvidu.server.utils.dockermanager.model</modelPackage>
+							<library>jersey2</library>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Generated sources -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>add-openapi-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>target/generated-sources/openapi</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>org.kurento</groupId>
@@ -250,6 +311,22 @@
 			<artifactId>maven-artifact</artifactId>
 			<version>${version.maven.artifact}</version>
 		</dependency>
+
+		<!-- Rest API interface dependencies -->
+		<!-- https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit -->
+		<dependency>
+			<groupId>com.squareup.retrofit2</groupId>
+			<artifactId>retrofit</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.swagger/swagger-annotations -->
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>1.6.2</version>
+		</dependency>
+
+		<!-- end of Rest API interface dependencies -->
 
 		<!-- Test dependencies -->
 

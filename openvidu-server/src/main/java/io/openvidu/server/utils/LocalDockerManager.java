@@ -81,7 +81,17 @@ public class LocalDockerManager implements DockerManager {
 		return this;
 	}
 
-	public void downloadDockerImage(String image, int secondsOfWait) throws Exception {
+	@Override
+	public void downloadDockerImage(String image, int secondsOfWait) {
+		try {
+			downloadDockerImageUnsafe(image, secondsOfWait);
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Could not ensure availability of image " + image + " (timeout: " + secondsOfWait + ")", e);
+		}
+	}
+
+	private void downloadDockerImageUnsafe(String image, int secondsOfWait) throws InterruptedException {
 		try {
 			// Pull image
 			this.dockerClient.pullImageCmd(image).exec(new PullImageResultCallback()).awaitCompletion(secondsOfWait,
@@ -102,6 +112,7 @@ public class LocalDockerManager implements DockerManager {
 		}
 	}
 
+	@Override
 	public boolean dockerImageExistsLocally(String image) throws ProcessingException {
 		boolean imageExists = false;
 		try {
@@ -188,6 +199,7 @@ public class LocalDockerManager implements DockerManager {
 		dockerClient.removeContainerCmd(containerId).withForce(force).exec();
 	}
 
+	@Override
 	public void cleanStrandedContainers(String imageName) {
 		List<Container> existingContainers = this.dockerClient.listContainersCmd().withShowAll(true).exec();
 		for (Container container : existingContainers) {
@@ -288,6 +300,7 @@ public class LocalDockerManager implements DockerManager {
 		return containerInfo.getConfig().getLabels();
 	}
 
+	@Override
 	public void close() {
 		try {
 			this.dockerClient.close();
