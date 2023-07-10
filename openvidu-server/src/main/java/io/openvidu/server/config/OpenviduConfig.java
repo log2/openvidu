@@ -185,6 +185,10 @@ public class OpenviduConfig {
 
 	private boolean openviduWebhookEnabled;
 
+	private String coturnHostSubstFrom;
+
+	private String coturnHostSubstTo;
+
 	private String openviduWebhookEndpoint;
 
 	private List<Header> webhookHeadersList;
@@ -383,6 +387,14 @@ public class OpenviduConfig {
 
 	public String getOpenViduWebhookEndpoint() {
 		return this.openviduWebhookEndpoint;
+	}
+
+	public String getCoturnHostSubstFrom() {
+		return coturnHostSubstFrom;
+	}
+
+	public String getCoturnHostSubstTo() {
+		return coturnHostSubstTo;
 	}
 
 	public List<Header> getOpenViduWebhookHeaders() {
@@ -643,6 +655,9 @@ public class OpenviduConfig {
 
 		openviduSessionsGarbageInterval = asNonNegativeInteger("OPENVIDU_SESSIONS_GARBAGE_INTERVAL");
 		openviduSessionsGarbageThreshold = asNonNegativeInteger("OPENVIDU_SESSIONS_GARBAGE_THRESHOLD");
+
+		coturnHostSubstFrom = asOptionalString("COTURN_HOST_SUBST_FROM");
+		coturnHostSubstTo = asOptionalString("COTURN_HOST_SUBST_TO");
 
 		openviduForcedCodec = asEnumValue("OPENVIDU_STREAMS_FORCED_VIDEO_CODEC", VideoCodec.class);
 		openviduAllowTranscoding = asBoolean("OPENVIDU_STREAMS_ALLOW_TRANSCODING");
