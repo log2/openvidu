@@ -785,9 +785,11 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 		String rpcSessionId = rpcSession.getSessionId();
 		String message = "";
 
-		if ("Close for not receive ping from client".equals(status)) {
-			message = "Evicting participant with private id {} because of a network disconnection";
-		} else if (status == null) { // && this.webSocketBrokenPipeTransportError.remove(rpcSessionId) != null)) {
+        if ("Close for not receive ping from client".equals(status)) {
+            message = "Evicting participant with private id {} because of a network disconnection";
+        } else if (isConnectionClosedUnexpectedly(status)) {
+            message = "Evicting participant with private id {} because its websocket unexpectedly closed in the client side";
+        } else if (status == null) { // && this.webSocketBrokenPipeTransportError.remove(rpcSessionId) != null)) {
 			try {
 				Participant p = sessionManager.getParticipant(rpcSession.getSessionId());
 				if (p != null) {
@@ -826,8 +828,14 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 		if (rpcSession != null) {
 			log.error("Transport exception for WebSocket session: {} - Exception: {}", rpcSession.getSessionId(),
 					exception.getMessage());
-			if ("IOException".equals(exception.getClass().getSimpleName()) && exception.getCause() != null
-					&& "Broken pipe".equals(exception.getCause().getMessage())) {
+            String message;
+            if (null != exception.getCause()) {
+                message = exception.getCause().getMessage();
+            } else {
+                message = exception.getMessage();
+            }
+			if ("IOException".equals(exception.getClass().getSimpleName())
+					&& ("Broken pipe".equals(message) || isConnectionClosedUnexpectedly(message))) {
 				log.warn("Participant with private id {} unexpectedly closed the websocket", rpcSession.getSessionId());
 			}
 			if ("EOFException".equals(exception.getClass().getSimpleName())) {
@@ -836,6 +844,10 @@ public class RpcHandler extends DefaultJsonRpcHandler<JsonObject> {
 				this.webSocketEOFTransportError.put(rpcSession.getSessionId(), true);
 			}
 		}
+	}
+
+	private boolean isConnectionClosedUnexpectedly(String status) {
+		return "Connection reset by peer".equals(status) || "Unable to unwrap data, invalid status [CLOSED]".equals(status);
 	}
 
 	@Override
