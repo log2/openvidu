@@ -13,6 +13,8 @@ paths:
       requestBody:
         content: {}
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -30,6 +32,8 @@ paths:
             schema:
               $ref: '#/components/schemas/CleanStrandedContainersRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -48,6 +52,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RunContainerRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -67,6 +73,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RunContainerRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -86,6 +94,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RunCommandRequestSync'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -105,6 +115,8 @@ paths:
             schema:
               $ref: '#/components/schemas/WaitForStopped'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -124,6 +136,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RunCommandRequestAsync'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -143,6 +157,8 @@ paths:
             schema:
               $ref: '#/components/schemas/RunContainerRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -160,6 +176,8 @@ paths:
             schema:
               $ref: '#/components/schemas/CheckImageAvailableRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/ImageAvailable'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -177,6 +195,8 @@ paths:
             schema:
               $ref: '#/components/schemas/EnsureImageAvailableRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/OK'
         '4XX':
           $ref: '#/components/responses/Error'
         '5XX':
@@ -255,6 +275,19 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
 
+    OK:
+      description: ok
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OKResponse'
+
+    ImageAvailable:
+      description: image available response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ImageAvailableResponse'
 
   parameters:
 
@@ -282,6 +315,18 @@ components:
 
 
   schemas:
+
+    OKResponse:
+      type: object
+      properties:
+        dummy:
+          type: string
+
+    ImageAvailableResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
 
     ErrorResponse:
       type: object
