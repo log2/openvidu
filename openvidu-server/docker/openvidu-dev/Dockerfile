@@ -15,27 +15,34 @@ RUN echo "deb [arch=amd64] http://ubuntu.openvidu.io/7.0.1 focal main" | tee /et
 
 # Install Java, supervisor and netstat
 RUN apt-get update && apt-get install -y \
-	openjdk-11-jre \
-	supervisor && \
-	rm -rf /var/lib/apt/lists/*
+    openjdk-11-jre \
+    supervisor && \
+    rm -rf /var/lib/apt/lists/*
+
+# Prepare tzdata
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+
+# Cleanup
+RUN rm -rf /var/lib/apt/lists/* && \
+	apt-get autoremove --purge -y && apt-get autoclean
+
+EXPOSE 8888
+EXPOSE 9091
+EXPOSE 4443
 
 # Configure supervisor
 RUN mkdir -p /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy KMS entrypoint
+COPY kms.sh /kms.sh
 
 RUN mkdir -p /opt/openvidu
 
 # Copy OpenVidu Server
 COPY openvidu-server-*.jar /opt/openvidu
 
-# Copy KMS entrypoint
-COPY kms.sh /kms.sh
-
-EXPOSE 8888
-EXPOSE 9091
-EXPOSE 4443
-
 WORKDIR /opt/openvidu
-
 # Exec supervisord
 CMD ["/usr/bin/supervisord"]
+
