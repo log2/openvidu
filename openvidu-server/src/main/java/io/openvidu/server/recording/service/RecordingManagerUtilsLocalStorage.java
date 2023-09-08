@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.openvidu.server.utils.RecordingUtils;
 import org.springframework.http.HttpStatus;
 
 import io.openvidu.server.config.OpenviduConfig;
@@ -35,8 +36,8 @@ public class RecordingManagerUtilsLocalStorage extends RecordingManagerUtils {
 	@Override
 	public String getRecordingUrl(Recording recording) {
 		String basePath = RequestMappings.RECORDINGS.replaceFirst("^/", "") + "/";
-		return openviduConfig.getFinalUrl() + basePath + recording.getId() + "/" + recording.getName() + "."
-				+ this.getExtensionFromRecording(recording);
+		return openviduConfig.getFinalUrl() + basePath + recording.getId() + "/" + recording.getName()
+				+ RecordingUtils.getExtensionFromRecording(recording);
 	}
 
 	@Override

@@ -64,7 +64,7 @@ import io.openvidu.server.kurento.kms.DummyLoadManager;
 import io.openvidu.server.kurento.kms.FixedOneKmsManager;
 import io.openvidu.server.kurento.kms.KmsManager;
 import io.openvidu.server.kurento.kms.LoadManager;
-import io.openvidu.server.recording.DummyRecordingDownloader;
+import io.openvidu.server.recording.ExternalizedRecordingDownloader;
 import io.openvidu.server.recording.DummyRecordingUploader;
 import io.openvidu.server.recording.RecordingDownloader;
 import io.openvidu.server.recording.RecordingUploader;
@@ -93,6 +93,8 @@ public class OpenViduServer implements JsonRpcConfigurer {
 
 	@Autowired
 	OpenviduConfig config;
+
+	private CustomFileManager fileManager = new LocalCustomFileManager();
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -174,7 +176,7 @@ public class OpenViduServer implements JsonRpcConfigurer {
 	@ConditionalOnMissingBean
 	@DependsOn("openviduConfig")
 	public RecordingManager recordingManager() {
-		return new RecordingManager(DockerManagerFactory.create(config), new LocalCustomFileManager());
+		return new RecordingManager(DockerManagerFactory.create(config), fileManager);
 	}
 
 	@Bean
@@ -212,7 +214,7 @@ public class OpenViduServer implements JsonRpcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean
 	public RecordingDownloader recordingDownload() {
-		return new DummyRecordingDownloader();
+		return new ExternalizedRecordingDownloader(config, fileManager);
 	}
 
 	@Bean
