@@ -1,13 +1,11 @@
 package io.openvidu.server.recording.service;
 
-import java.util.Set;
-
-import org.springframework.http.HttpStatus;
-
-import io.openvidu.java.client.Recording.OutputMode;
 import io.openvidu.server.config.OpenviduConfig;
 import io.openvidu.server.recording.Recording;
 import io.openvidu.server.utils.JsonUtils;
+import org.springframework.http.HttpStatus;
+
+import java.util.Set;
 
 public abstract class RecordingManagerUtils {
 
@@ -30,16 +28,6 @@ public abstract class RecordingManagerUtils {
 	protected abstract String getRecordingUrl(Recording recording);
 
 	protected abstract Set<String> getAllRecordingIdsFromStorage(String sessionIdPrefix);
-
-	protected String getExtensionFromRecording(Recording recording) {
-		if (OutputMode.INDIVIDUAL.equals(recording.getOutputMode())) {
-			return "zip";
-		} else if (recording.hasVideo()) {
-			return "mp4";
-		} else {
-			return "webm";
-		}
-	}
 
 	public String getFreeRecordingId(String sessionId) {
 		Set<String> recordingIds = getAllRecordingIdsFromStorage(sessionId);
